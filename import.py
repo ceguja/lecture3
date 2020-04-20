@@ -1,0 +1,22 @@
+import csv
+import os
+import config
+
+from sqlalchemy import create_engine, engine_from_config
+from sqlalchemy.orm import scoped_session, sessionmaker
+
+# engine = create_engine("postgresql://user:pwd@localhost:5432/airlines")
+engine = engine_from_config(config.connstr, prefix="sqlalchemy.")
+db = scoped_session(sessionmaker(bind=engine))
+
+def main():
+    f = open("flights.csv")
+    reader = csv.reader(f)
+    for origin, destination, duration in reader:
+        db.execute("INSERT INTO flights (origin, destination, duration) VALUES (:origin, :destination, :duration)",
+                    {"origin": origin, "destination": destination, "duration": duration})
+        print(f"Added flight from {origin} to {destination} lasting {duration} minutes.")
+    db.commit()
+
+if __name__ == "__main__":
+    main()
